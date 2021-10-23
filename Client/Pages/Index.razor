@@ -5,43 +5,57 @@
 
 <PageTitle>Index</PageTitle>
 
-<div class="form-group">
-    <label>
-        Group:
-        <ul>
-        @foreach (var group in @groups)
-        {
-            <li><a href="" @onclick="@(e => JoinGroup(group))">@group</a></li>
-        }
-        </ul>
-        <input @bind="newGroup" size="50" />
-        <button @onclick="@(e => JoinGroup(newGroup))" disabled="@(!IsConnected)">Join</button>
-    </label>
-</div>
+<h2>Welcome to BlazorChat!</h2>
 
 <div class="form-group">
     <label>
         User:
-        <input @bind="userInput" />
-    </label>
-</div>
-<div class="form-group">
-    <label>
-        Message:
-        <input @bind="messageInput" size="50" />
+        <input @bind="userInput" disabled="@IsConnected" />
+        <button @onclick="LogIn" disabled="@IsConnected">Log in</button>
     </label>
 </div>
 
-<button @onclick="Send" disabled="@(!IsConnected)">Send</button>
+@if (IsConnected && !InGroup)
+{
+    <div class="form-group">
+        <label>
+            Group:
+            <ul>
+            @foreach (var group in @groups)
+            {
+                <li><a href="" @onclick="@(e => JoinGroup(group))">@group</a></li>
+            }
+            </ul>
+            <input @bind="newGroup" size="50" />
+            <button @onclick="@(e => JoinGroup(newGroup))" disabled="@(!IsConnected)">Join</button>
+        </label>
+    </div>
+}
 
-<hr>
+@if (IsConnected && InGroup)
+{
+    <h3>Now chatting in @currentGroup</h3>
 
-<ul id="messagesList">
-    @foreach (var message in messages)
-    {
-        <li>@message</li>
-    }
-</ul>
+    <button @onclick="LeaveGroup">Leave group</button>
+
+    <div class="form-group">
+        <label>
+            Message:
+            <input @bind="messageInput" size="50" />
+        </label>
+    </div>
+
+    <button @onclick="Send" disabled="@(!IsConnected)">Send</button>
+
+    <hr>
+
+    <ul id="messagesList">
+        @foreach (var message in messages)
+        {
+            <li>@message</li>
+        }
+    </ul>    
+}
 
 @code {
     private HubConnection? hubConnection;
@@ -49,7 +63,7 @@
     private string[] groups = new string[0];
     private List<string> messages = new List<string>();
     private string newGroup = "";
-    private string? userInput;
+    private string? userInput = "Max";
     private string? messageInput;
 
     protected override async Task OnInitializedAsync()
@@ -71,7 +85,14 @@
             StateHasChanged();
         });
 
-        await hubConnection.StartAsync();
+    }
+
+    private async Task LogIn()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.StartAsync();                    
+        }
     }
 
     private async Task Send()
@@ -79,6 +100,7 @@
         if (hubConnection is not null)
         {
             await hubConnection.SendAsync("SendMessage", userInput, messageInput, currentGroup);
+            messageInput = "";
         }
     }
 
@@ -92,8 +114,20 @@
         }        
     }
 
+    public async Task LeaveGroup()
+    {
+        currentGroup = "";
+        messages.Clear();        
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("RemoveFromGroup", userInput, currentGroup);
+        }        
+    }
+
     public bool IsConnected =>
         hubConnection?.State == HubConnectionState.Connected;
+
+    public bool InGroup => !string.IsNullOrEmpty(currentGroup);
 
     public async ValueTask DisposeAsync()
     {

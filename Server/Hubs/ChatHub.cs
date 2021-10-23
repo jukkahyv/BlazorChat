@@ -29,19 +29,22 @@ namespace BlazorWebAssemblySignalRApp.Server.Hubs
             await Clients.Group(groupName).SendAsync("ReceiveMessage", user, $"has joined the group {groupName}.");
 
             var groupMessages = _messages.Where(m => m.Group == groupName).ToArray();
-            foreach (var msg in _messages)
+            foreach (var msg in groupMessages)
             {
                 await Clients.Caller.SendAsync("ReceiveMessage", msg.User, msg.MessageText);
             }
 
         }
 
+        public async Task RemoveFromGroup(string user, string groupName)
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
+
+            await Clients.Group(groupName).SendAsync("ReceiveMessage", user, $"has left the group {groupName}.");
+        }
+
         public override async Task OnConnectedAsync()
         {
-            /*foreach (var message in _messages)
-            {
-                await Clients.Caller.SendAsync("ReceiveMessage", message.User, message.MessageText);
-            }*/
             await Clients.Caller.SendAsync("RefreshGroups", _groups);
             await base.OnConnectedAsync();
         }
