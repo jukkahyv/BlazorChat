@@ -1,7 +1,12 @@
 using Microsoft.AspNetCore.ResponseCompression;
 using BlazorWebAssemblySignalRApp.Server.Hubs;
+using BlazorWebAssemblySignalRApp.Server;
+using Microsoft.EntityFrameworkCore;
+using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var config = builder.Configuration.AddJsonFile("keys.json", true).Build();
 
 // Add services to the container.
 #region snippet_ConfigureServices
@@ -13,6 +18,9 @@ builder.Services.AddResponseCompression(opts =>
 	opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
 		new[] { "application/octet-stream" });
 });
+
+builder.Services.AddDbContext<ChatDbContext>(options =>
+    options.UseCosmos(config.GetConnectionString("Default"), config["DatabaseName"]));
 #endregion
 
 var app = builder.Build();

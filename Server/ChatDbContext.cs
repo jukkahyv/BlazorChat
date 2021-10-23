@@ -5,6 +5,13 @@ namespace BlazorWebAssemblySignalRApp.Server
 {
     public class ChatDbContext : DbContext
     {
+
+        public ChatDbContext(DbContextOptions<ChatDbContext> dbOptions)
+            : base(dbOptions)
+        {
+
+        }
+
         public DbSet<Message> Messages { get; set;}
     }
 }
