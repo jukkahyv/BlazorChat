@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.SignalR.Client
+@using BlazorWebAssemblySignalRApp.Shared
 @inject NavigationManager NavigationManager
 @implements IAsyncDisposable
 
@@ -21,7 +22,7 @@
     <ul>
     @foreach (var group in @groups)
     {
-        <li><a href="" @onclick="@(e => JoinGroup(group))">@group</a></li>
+        <li><a href="" @onclick="@(e => JoinGroup(group.Name))">@group.Name (@group.MemberCount / @Constants.MaxMemberCount users)</a></li>
     }
     </ul>
 
@@ -64,7 +65,7 @@
 @code {
     private HubConnection? hubConnection;
     private string currentGroup = "";
-    private string[] groups = new string[0];
+    private GroupDTO[] groups = new GroupDTO[0];
     private List<string> messages = new List<string>();
     private string newGroup = "";
     private string? userInput = "Max";
@@ -83,7 +84,7 @@
             StateHasChanged();
         });
 
-        hubConnection.On<List<string>>("RefreshGroups", (groups) =>
+        hubConnection.On<List<GroupDTO>>("RefreshGroups", (groups) =>
         {
             this.groups = groups.ToArray();
             StateHasChanged();
