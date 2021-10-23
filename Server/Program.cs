@@ -19,8 +19,11 @@ builder.Services.AddResponseCompression(opts =>
 		new[] { "application/octet-stream" });
 });
 
+var connectionString = config.GetConnectionString("Default");
+var dbName = config["DatabaseName"];
+
 builder.Services.AddDbContext<ChatDbContext>(options =>
-    options.UseCosmos(config.GetConnectionString("Default"), config["DatabaseName"]));
+    options.UseCosmos(connectionString, dbName));
 #endregion
 
 var app = builder.Build();

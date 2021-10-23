@@ -8,16 +8,29 @@ namespace BlazorWebAssemblySignalRApp.Server.Hubs
     public class ChatHub : Hub
     {
 
+        public ChatHub(ChatDbContext dbContext)
+        {
+            _dbContext = dbContext;
+            // TODO: move this elsewhere
+            _dbContext.Database.EnsureCreated();
+        }
+
+        private readonly ChatDbContext _dbContext;
+
         private static readonly Dictionary<string, Group> _groups = new Dictionary<string, Group>();
         private static readonly List<Message> _messages = new List<Message>();
 
-        private List<string> GroupNames => _groups.Keys.ToList();
         private List<GroupDTO> GroupDTOs => _groups.Values.Select(g => g.ToDTO()).ToList();
 
         public async Task SendMessage(string user, string message, string group)
         {
-            _messages.Add(new Message { User = user, MessageText = message, Group = group });
+            var msg = new Message { User = user, MessageText = message, Group = group };
+            _messages.Add(msg);
             await Clients.Group(group).SendAsync("ReceiveMessage", user, message);
+
+            await _dbContext.AddAsync(msg);
+            await _dbContext.SaveChangesAsync();
+
         }
 
         public async Task AddToGroup(string user, string groupName)
