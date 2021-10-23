@@ -7,6 +7,20 @@
 
 <div class="form-group">
     <label>
+        Group:
+        <ul>
+        @foreach (var group in @groups)
+        {
+            <li><a href="" @onclick="@(e => JoinGroup(group))">@group</a></li>
+        }
+        </ul>
+        <input @bind="newGroup" size="50" />
+        <button @onclick="@(e => JoinGroup(newGroup))" disabled="@(!IsConnected)">Join</button>
+    </label>
+</div>
+
+<div class="form-group">
+    <label>
         User:
         <input @bind="userInput" />
     </label>
@@ -17,6 +31,7 @@
         <input @bind="messageInput" size="50" />
     </label>
 </div>
+
 <button @onclick="Send" disabled="@(!IsConnected)">Send</button>
 
 <hr>
@@ -30,7 +45,10 @@
 
 @code {
     private HubConnection? hubConnection;
+    private string currentGroup = "";
+    private string[] groups = new string[0];
     private List<string> messages = new List<string>();
+    private string newGroup = "";
     private string? userInput;
     private string? messageInput;
 
@@ -47,16 +65,30 @@
             StateHasChanged();
         });
 
+        hubConnection.On<List<string>>("RefreshGroups", (groups) =>
+        {
+            this.groups = groups.ToArray();
+        });
+
         await hubConnection.StartAsync();
     }
 
     private async Task Send()
-	{
-	    if (hubConnection is not null)
-		{
+    {
+        if (hubConnection is not null)
+        {
             await hubConnection.SendAsync("SendMessage", userInput, messageInput);
-		}
-	}
+        }
+    }
+
+    public async Task JoinGroup(string groupName)
+    {
+        currentGroup = newGroup = groupName;
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("AddToGroup", userInput, groupName);
+        }        
+    }
 
     public bool IsConnected =>
         hubConnection?.State == HubConnectionState.Connected;
@@ -68,4 +100,5 @@
             await hubConnection.DisposeAsync();
         }
     }
+
 }

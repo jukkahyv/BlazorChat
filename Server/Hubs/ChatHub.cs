@@ -6,6 +6,7 @@ namespace BlazorWebAssemblySignalRApp.Server.Hubs
     public class ChatHub : Hub
     {
 
+        private static readonly HashSet<string> _groups = new HashSet<string>();
         private static readonly List<Message> _messages = new List<Message>();
 
         public async Task SendMessage(string user, string message)
@@ -14,11 +15,18 @@ namespace BlazorWebAssemblySignalRApp.Server.Hubs
             await Clients.All.SendAsync("ReceiveMessage", user, message);
         }
 
-        public async Task AddToGroup(string groupName)
+        public async Task AddToGroup(string user, string groupName)
         {
+
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
 
-            await Clients.Group(groupName).SendAsync("Send", $"{Context.ConnectionId} has joined the group {groupName}.");
+            if (!_groups.Contains(groupName))
+            {
+                _groups.Add(groupName);
+                await Clients.All.SendAsync("RefreshGroups", _groups);
+            }
+
+            await Clients.Group(groupName).SendAsync("ReceiveMessage", user, $"has joined the group {groupName}.");
         }
 
         public override async Task OnConnectedAsync()
