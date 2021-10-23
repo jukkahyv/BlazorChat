@@ -17,15 +17,17 @@
 
 @if (IsConnected && !InGroup)
 {
+    <h3>Groups</h3>
+    <ul>
+    @foreach (var group in @groups)
+    {
+        <li><a href="" @onclick="@(e => JoinGroup(group))">@group</a></li>
+    }
+    </ul>
+
     <div class="form-group">
         <label>
-            Group:
-            <ul>
-            @foreach (var group in @groups)
-            {
-                <li><a href="" @onclick="@(e => JoinGroup(group))">@group</a></li>
-            }
-            </ul>
+            New group:
             <input @bind="newGroup" size="50" />
             <button @onclick="@(e => JoinGroup(newGroup))" disabled="@(!IsConnected)">Join</button>
         </label>
@@ -38,14 +40,16 @@
 
     <button @onclick="LeaveGroup">Leave group</button>
 
-    <div class="form-group">
-        <label>
-            Message:
-            <input @bind="messageInput" size="50" />
-        </label>
-    </div>
+    <form @onsubmit="Send">
+        <div class="form-group">
+            <label>
+                Message:
+                <input @bind="messageInput" size="50" />
+            </label>
+        </div>
 
-    <button @onclick="Send" disabled="@(!IsConnected)">Send</button>
+        <button type="submit" disabled="@(!IsConnected)">Send</button>
+    </form>
 
     <hr>
 
