@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using BlazorWebAssemblySignalRApp.Server.Models;
 using BlazorWebAssemblySignalRApp.Shared;
 using Microsoft.AspNetCore.SignalR;
 
@@ -60,22 +61,6 @@ namespace BlazorWebAssemblySignalRApp.Server.Hubs
             await base.OnConnectedAsync();
         }
 
-    }
-
-    public class Message
-    {
-        public string Group { get; init; }
-        public string MessageText { get; init; }
-        public string User { get; init; }
-        public DateTime Timestamp { get; } = DateTime.Now;
-    }
-
-    public class Group
-    {
-        public string Name { get; init; }
-        public HashSet<string> Members { get; } = new HashSet<string>();
-
-        public GroupDTO ToDTO() => new Shared.GroupDTO { Name = Name, MemberCount = Members.Count };
     }
 
 }
