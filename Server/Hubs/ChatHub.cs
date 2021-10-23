@@ -1,5 +1,4 @@
-﻿using BlazorWebAssemblySignalRApp.Server.Models;
-using BlazorWebAssemblySignalRApp.Server.Repositories;
+﻿using BlazorWebAssemblySignalRApp.Server.Repositories;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BlazorWebAssemblySignalRApp.Server.Hubs
@@ -7,28 +6,19 @@ namespace BlazorWebAssemblySignalRApp.Server.Hubs
     public class ChatHub : Hub
     {
 
-        public ChatHub(ChatDbContext dbContext, IGroupRepository groups)
+        public ChatHub(IMessageRepository messages, IGroupRepository groups)
         {
-            _dbContext = dbContext;
-            // TODO: move this elsewhere
-            _dbContext.Database.EnsureCreated();
+            _messages = messages;
             _groups = groups;
         }
 
-        private readonly ChatDbContext _dbContext;
         private readonly IGroupRepository _groups;
-
-        private static readonly List<Message> _messages = new List<Message>();
+        private readonly IMessageRepository _messages;
 
         public async Task SendMessage(string user, string message, string group)
         {
-            var msg = new Message { User = user, MessageText = message, Group = group };
-            _messages.Add(msg);
             await Clients.Group(group).SendAsync("ReceiveMessage", user, message);
-
-            await _dbContext.AddAsync(msg);
-            await _dbContext.SaveChangesAsync();
-
+            await _messages.AddMessageAsync(message, user, group);
         }
 
         public async Task AddToGroup(string user, string groupName)
@@ -45,7 +35,7 @@ namespace BlazorWebAssemblySignalRApp.Server.Hubs
 
             await Clients.Group(groupName).SendAsync("ReceiveMessage", user, $"has joined the group {groupName}.");
 
-            var groupMessages = _messages.Where(m => m.Group == groupName).ToArray();
+            var groupMessages = await _messages.GetMessagesAsync(groupName);
             foreach (var msg in groupMessages)
             {
                 await Clients.Caller.SendAsync("ReceiveMessage", msg.User, msg.MessageText);

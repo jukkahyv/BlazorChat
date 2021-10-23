@@ -26,6 +26,7 @@ var dbName = config["DatabaseName"];
 builder.Services.AddDbContext<ChatDbContext>(options =>
     options.UseCosmos(connectionString, dbName));
 
+builder.Services.AddTransient<IMessageRepository, MessageRepository>();
 builder.Services.AddSingleton<IGroupRepository, GroupRepository>();
 #endregion
 
