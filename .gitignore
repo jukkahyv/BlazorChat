@@ -11,3 +11,5 @@
 /Shared/bin/
 /Shared/obj
 /Server/keys.json
+/Server/Properties
+/Server/.config
