@@ -3,6 +3,7 @@ using BlazorWebAssemblySignalRApp.Server.Hubs;
 using BlazorWebAssemblySignalRApp.Server;
 using Microsoft.EntityFrameworkCore;
 using System.Configuration;
+using BlazorWebAssemblySignalRApp.Server.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,8 @@ var dbName = config["DatabaseName"];
 
 builder.Services.AddDbContext<ChatDbContext>(options =>
     options.UseCosmos(connectionString, dbName));
+
+builder.Services.AddSingleton<IGroupRepository, GroupRepository>();
 #endregion
 
 var app = builder.Build();
