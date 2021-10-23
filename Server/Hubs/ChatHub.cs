@@ -9,10 +9,10 @@ namespace BlazorWebAssemblySignalRApp.Server.Hubs
         private static readonly HashSet<string> _groups = new HashSet<string>();
         private static readonly List<Message> _messages = new List<Message>();
 
-        public async Task SendMessage(string user, string message)
+        public async Task SendMessage(string user, string message, string group)
         {
-            _messages.Add(new Message { User = user, MessageText = message });
-            await Clients.All.SendAsync("ReceiveMessage", user, message);
+            _messages.Add(new Message { User = user, MessageText = message, Group = group });
+            await Clients.Group(group).SendAsync("ReceiveMessage", user, message);
         }
 
         public async Task AddToGroup(string user, string groupName)
@@ -27,14 +27,22 @@ namespace BlazorWebAssemblySignalRApp.Server.Hubs
             }
 
             await Clients.Group(groupName).SendAsync("ReceiveMessage", user, $"has joined the group {groupName}.");
+
+            var groupMessages = _messages.Where(m => m.Group == groupName).ToArray();
+            foreach (var msg in _messages)
+            {
+                await Clients.Caller.SendAsync("ReceiveMessage", msg.User, msg.MessageText);
+            }
+
         }
 
         public override async Task OnConnectedAsync()
         {
-            foreach (var message in _messages)
+            /*foreach (var message in _messages)
             {
                 await Clients.Caller.SendAsync("ReceiveMessage", message.User, message.MessageText);
-            }
+            }*/
+            await Clients.Caller.SendAsync("RefreshGroups", _groups);
             await base.OnConnectedAsync();
         }
     }

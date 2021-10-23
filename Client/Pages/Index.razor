@@ -68,6 +68,7 @@
         hubConnection.On<List<string>>("RefreshGroups", (groups) =>
         {
             this.groups = groups.ToArray();
+            StateHasChanged();
         });
 
         await hubConnection.StartAsync();
@@ -77,13 +78,14 @@
     {
         if (hubConnection is not null)
         {
-            await hubConnection.SendAsync("SendMessage", userInput, messageInput);
+            await hubConnection.SendAsync("SendMessage", userInput, messageInput, currentGroup);
         }
     }
 
     public async Task JoinGroup(string groupName)
     {
         currentGroup = newGroup = groupName;
+        messages.Clear();
         if (hubConnection is not null)
         {
             await hubConnection.SendAsync("AddToGroup", userInput, groupName);
