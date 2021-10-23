@@ -3,20 +3,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BlazorWebAssemblySignalRApp.Server.Repositories
 {
-
     /// <summary>
-    /// Persists chat messages.
+    /// Database (EF Core) backed message storage.
     /// </summary>
-    public interface IMessageRepository
-    {
-        Task AddMessageAsync(string message, string user, string group);
-        Task<IReadOnlyCollection<Message>> GetMessagesAsync(string group);
-    }
-
-    public class MessageRepository : IMessageRepository
+    public class DatabaseMessageRepository : IMessageRepository
     {
 
-        public MessageRepository(ChatDbContext dbContext)
+        public DatabaseMessageRepository(ChatDbContext dbContext)
         {
             _dbContext = dbContext;
             // TODO: move this elsewhere
