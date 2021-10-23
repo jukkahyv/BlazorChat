@@ -121,12 +121,12 @@
 
     public async Task LeaveGroup()
     {
-        currentGroup = "";
         messages.Clear();        
         if (hubConnection is not null)
         {
             await hubConnection.SendAsync("RemoveFromGroup", userInput, currentGroup);
         }        
+        currentGroup = "";
     }
 
     public bool IsConnected =>

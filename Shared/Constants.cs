@@ -3,6 +3,6 @@ namespace BlazorWebAssemblySignalRApp.Shared
 {
     public static class Constants
     {
-        public const int MaxMemberCount = 1;
+        public const int MaxMemberCount = 20;
     }
 }
