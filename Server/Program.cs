@@ -20,14 +20,23 @@ builder.Services.AddResponseCompression(opts =>
 		new[] { "application/octet-stream" });
 });
 
+builder.Services.AddSingleton<IGroupRepository, GroupRepository>();
+
+
 var connectionString = config.GetConnectionString("Default");
 var dbName = config["DatabaseName"];
+var useCosmosDB = !string.IsNullOrEmpty(connectionString) && !string.IsNullOrEmpty(dbName);
 
-builder.Services.AddDbContext<ChatDbContext>(options =>
-    options.UseCosmos(connectionString, dbName));
+if (useCosmosDB)
+{
+    builder.Services.AddDbContext<ChatDbContext>(options =>
+        options.UseCosmos(connectionString, dbName));
+    builder.Services.AddTransient<IMessageRepository, DatabaseMessageRepository>();
+} else
+{
+    builder.Services.AddSingleton<IMessageRepository, InMemoryMessageRepository>();
+}
 
-builder.Services.AddTransient<IMessageRepository, DatabaseMessageRepository>();
-builder.Services.AddSingleton<IGroupRepository, GroupRepository>();
 #endregion
 
 var app = builder.Build();

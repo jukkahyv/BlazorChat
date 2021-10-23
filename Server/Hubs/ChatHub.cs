@@ -48,6 +48,7 @@ namespace BlazorWebAssemblySignalRApp.Server.Hubs
             _groups.LeaveGroup(user, groupName);
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
             await Clients.Group(groupName).SendAsync("ReceiveMessage", user, $"has left the group {groupName}.");
+            await Clients.Caller.SendAsync("RefreshGroups", _groups.GroupDTOs);
         }
 
         public override async Task OnConnectedAsync()
