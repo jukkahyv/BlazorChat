@@ -13,3 +13,5 @@
 /Server/keys.json
 /Server/Properties
 /Server/.config
+/BlazorWebAssemblySignalRApp.Tests/bin/
+/BlazorWebAssemblySignalRApp.Tests/obj
