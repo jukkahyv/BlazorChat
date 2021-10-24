@@ -24,39 +24,50 @@ namespace BlazorWebAssemblySignalRApp.Server.Repositories
     {
 
         private readonly Dictionary<string, Group> _groups = new();
+        private const string _lock = "lock";
 
         public List<GroupDTO> GroupDTOs => _groups.Values.Select(g => g.ToDTO()).ToList();
 
         public void LeaveGroup(string user, string groupName)
         {
-            if (_groups.TryGetValue(groupName, out var group))
+            lock (_lock)
             {
-                group.Members.Remove(user);
+                if (_groups.TryGetValue(groupName, out var group))
+                {
+                    group.Members.Remove(user);
+                }
             }
         }
 
         public void LeaveGroups(string user)
         {
-            foreach (var grp in _groups.Values)
+            lock (_lock)
             {
-                grp.Members.Remove(user);
+                foreach (var grp in _groups.Values)
+                {
+                    grp.Members.Remove(user);
+                }
             }
         }
 
         public bool TryJoinGroup(string user, string groupName)
         {
 
-            if (!_groups.TryGetValue(groupName, out var group))
+            lock (_lock)
             {
-                group = new Group { Name = groupName };
-                _groups.Add(groupName, group);
-            }
-            else if (group.Members.Count >= Constants.MaxMemberCount)
-            {
-                return false;
+                if (!_groups.TryGetValue(groupName, out var group))
+                {
+                    group = new Group { Name = groupName };
+                    _groups.Add(groupName, group);
+                }
+                else if (group.Members.Count >= Constants.MaxMemberCount)
+                {
+                    return false;
+                }
+
+                group.Members.Add(user);
             }
 
-            group.Members.Add(user);
             return true;
 
         }
