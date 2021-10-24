@@ -67,5 +67,17 @@ app.MapControllers();
 app.MapHub<ChatHub>("/chathub");
 app.MapFallbackToFile("index.html");
 
+if (useCosmosDB)
+{
+    // Database.EnsureCreated must be called to create CosmosDB database.
+    // From https://stackoverflow.com/a/38263675
+    // There is probably a better way to do this too, maybe in startup filter
+    using (var scope = app.Services.CreateScope())
+    {
+        var context = scope.ServiceProvider.GetRequiredService<ChatDbContext>();
+        context.Database.EnsureCreated();
+    }
+}
+
 app.Run();
 #endregion

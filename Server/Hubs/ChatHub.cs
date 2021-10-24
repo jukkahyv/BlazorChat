@@ -15,6 +15,11 @@ namespace BlazorWebAssemblySignalRApp.Server.Hubs
 
         private readonly IGroupRepository _groups;
         private readonly IMessageRepository _messages;
+        /// <summary>
+        /// Maps connection ID to user name.
+        /// Not happy with this. We should use identity management instead.
+        /// </summary>
+        private readonly static Dictionary<string, string> _userMap = new();
 
         public async Task SendMessage(string user, string message, string group)
         {
@@ -30,6 +35,8 @@ namespace BlazorWebAssemblySignalRApp.Server.Hubs
                 await Clients.Caller.SendAsync(MessageNames.ReceiveMessage, "System", "The group is full");
                 return;
             }
+
+            _userMap[Context.ConnectionId] = user;
 
             await Clients.All.SendAsync(MessageNames.RefreshGroups, _groups.GroupDTOs);
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
@@ -56,6 +63,16 @@ namespace BlazorWebAssemblySignalRApp.Server.Hubs
         {
             await Clients.Caller.SendAsync(MessageNames.RefreshGroups, _groups.GroupDTOs);
             await base.OnConnectedAsync();
+        }
+
+        public override async Task OnDisconnectedAsync(Exception? exception)
+        {
+            if (_userMap.TryGetValue(Context.ConnectionId, out var userName))
+            {
+                _groups.LeaveGroups(userName);
+            }
+            await Clients.Others.SendAsync(MessageNames.RefreshGroups, _groups.GroupDTOs);
+            await base.OnDisconnectedAsync(exception);
         }
 
     }

@@ -12,7 +12,6 @@ namespace BlazorWebAssemblySignalRApp.Server.Repositories
         public DatabaseMessageRepository(ChatDbContext dbContext)
         {
             _dbContext = dbContext;
-            // TODO: move this elsewhere
             _dbContext.Database.EnsureCreated();
         }
 

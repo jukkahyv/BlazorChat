@@ -11,6 +11,11 @@ namespace BlazorWebAssemblySignalRApp.Server.Repositories
     public interface IGroupRepository
     {
         List<GroupDTO> GroupDTOs { get; }
+        /// <summary>
+        /// Removes user from all groups.
+        /// </summary>
+        /// <param name="user">User name, for example "Max".</param>
+        void LeaveGroups(string user);
         void LeaveGroup(string user, string groupName);
         bool TryJoinGroup(string user, string groupName);
     }
@@ -27,6 +32,14 @@ namespace BlazorWebAssemblySignalRApp.Server.Repositories
             if (_groups.TryGetValue(groupName, out var group))
             {
                 group.Members.Remove(user);
+            }
+        }
+
+        public void LeaveGroups(string user)
+        {
+            foreach (var grp in _groups.Values)
+            {
+                grp.Members.Remove(user);
             }
         }
 
