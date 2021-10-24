@@ -1,4 +1,5 @@
 ﻿using BlazorWebAssemblySignalRApp.Server.Repositories;
+using BlazorWebAssemblySignalRApp.Shared;
 using Microsoft.AspNetCore.SignalR;
 
 namespace BlazorWebAssemblySignalRApp.Server.Hubs
@@ -17,7 +18,7 @@ namespace BlazorWebAssemblySignalRApp.Server.Hubs
 
         public async Task SendMessage(string user, string message, string group)
         {
-            await Clients.Group(group).SendAsync("ReceiveMessage", user, message);
+            await Clients.Group(group).SendAsync(MessageNames.ReceiveMessage, user, message);
             await _messages.AddMessageAsync(message, user, group);
         }
 
@@ -26,19 +27,19 @@ namespace BlazorWebAssemblySignalRApp.Server.Hubs
 
             if (!_groups.TryJoinGroup(user, groupName))
             {
-                await Clients.Caller.SendAsync("ReceiveMessage", "System", "The group is full");
+                await Clients.Caller.SendAsync(MessageNames.ReceiveMessage, "System", "The group is full");
                 return;
             }
 
-            await Clients.All.SendAsync("RefreshGroups", _groups.GroupDTOs);
+            await Clients.All.SendAsync(MessageNames.RefreshGroups, _groups.GroupDTOs);
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
 
-            await Clients.Group(groupName).SendAsync("ReceiveMessage", user, $"has joined the group {groupName}.");
+            await Clients.Group(groupName).SendAsync(MessageNames.ReceiveMessage, user, $"has joined the group {groupName}.");
 
             var groupMessages = await _messages.GetMessagesAsync(groupName);
             foreach (var msg in groupMessages)
             {
-                await Clients.Caller.SendAsync("ReceiveMessage", msg.User, msg.MessageText);
+                await Clients.Caller.SendAsync(MessageNames.ReceiveMessage, msg.User, msg.MessageText);
             }
 
         }
@@ -47,13 +48,13 @@ namespace BlazorWebAssemblySignalRApp.Server.Hubs
         {
             _groups.LeaveGroup(user, groupName);
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
-            await Clients.Group(groupName).SendAsync("ReceiveMessage", user, $"has left the group {groupName}.");
-            await Clients.Caller.SendAsync("RefreshGroups", _groups.GroupDTOs);
+            await Clients.Group(groupName).SendAsync(MessageNames.ReceiveMessage, user, $"has left the group {groupName}.");
+            await Clients.Caller.SendAsync(MessageNames.RefreshGroups, _groups.GroupDTOs);
         }
 
         public override async Task OnConnectedAsync()
         {
-            await Clients.Caller.SendAsync("RefreshGroups", _groups.GroupDTOs);
+            await Clients.Caller.SendAsync(MessageNames.RefreshGroups, _groups.GroupDTOs);
             await base.OnConnectedAsync();
         }
 

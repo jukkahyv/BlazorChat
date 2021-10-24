@@ -77,14 +77,14 @@
             .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
             .Build();
 
-        hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
+        hubConnection.On<string, string>(MessageNames.ReceiveMessage, (user, message) =>
         {
             var encodedMsg = $"{user}: {message}";
             messages.Add(encodedMsg);
             StateHasChanged();
         });
 
-        hubConnection.On<List<GroupDTO>>("RefreshGroups", (groups) =>
+        hubConnection.On<List<GroupDTO>>(MessageNames.RefreshGroups, (groups) =>
         {
             this.groups = groups.ToArray();
             StateHasChanged();

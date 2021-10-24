@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace BlazorWebAssemblySignalRApp.Tests
 {
+
+    /// <summary>
+    /// Mock for <see cref="IClientProxy"/> which records messages.
+    /// </summary>
     public class ClientProxyMock : IClientProxy
     {
 
