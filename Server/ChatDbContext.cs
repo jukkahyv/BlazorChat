@@ -14,7 +14,13 @@ namespace BlazorWebAssemblySignalRApp.Server
 
         }
 
-        public DbSet<Message> Messages { get; set;}
+        public DbSet<Message> Messages { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Message>().HasPartitionKey(m => m.Group);
+            base.OnModelCreating(modelBuilder);
+        }
 
     }
 }
